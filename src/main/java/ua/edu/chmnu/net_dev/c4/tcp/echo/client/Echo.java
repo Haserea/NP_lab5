@@ -10,7 +10,7 @@ import java.net.Socket;
 import java.util.Scanner;
 
 public class Echo {
-    private final static int DEFAULT_PORT = 6666;
+    private final static int DEFAULT_PORT = 8080;
 
     public static void main(String[] args) throws IOException {
 
@@ -31,11 +31,16 @@ public class Echo {
                     var writer = new PrintWriter(clientSocket.getOutputStream(), true);
                     var reader = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()))
             ) {
+                String promptNick = reader.readLine();
+
+                System.out.print(promptNick);
+
+                var nick = scanner.nextLine();
+
+                writer.println(nick);
+
                 while (!clientSocket.isClosed()) {
                     String promptData = reader.readLine();
-                    if (promptData == null) {
-                        break;
-                    }
 
                     System.out.print(promptData);
 
@@ -47,18 +52,6 @@ public class Echo {
                     }
 
                     writer.println(line);
-
-                    String response = reader.readLine();
-                    if (response == null) {
-                        break;
-                    }
-
-                    System.out.println("Server: " + response);
-
-                    if (response.equals("All ships destroyed. Disconnecting...")) {
-                        System.out.println("All ships destroyed. Exiting client...");
-                        break;
-                    }
                 }
             }
         }
