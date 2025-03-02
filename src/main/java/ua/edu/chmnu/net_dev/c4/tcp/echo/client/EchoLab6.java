@@ -1,56 +1,55 @@
 package ua.edu.chmnu.net_dev.c4.tcp.echo.client;
 
-import ua.edu.chmnu.net_dev.c4.tcp.core.client.EndPoint;
-
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
-import java.net.Socket;
-import java.util.Scanner;
+import java.net.DatagramPacket;
+import java.net.DatagramSocket;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 
 public class EchoLab6  {
-    private final static int DEFAULT_PORT = 6666;
 
-    public static void main(String[] args) throws IOException {
+    private final static int DEFAULT_PORT = 8080;
 
-        EndPoint endPoint;
+    public static void main(String[] args) {
+        String serverHost = "localhost";
+        int serverPort = DEFAULT_PORT;
 
         if (args.length > 0) {
-            endPoint = new EndPoint(args[0]);
-        } else {
-            endPoint = new EndPoint("localhost", DEFAULT_PORT);
+            serverHost = args[0];
+        }
+        if (args.length > 1) {
+            try {
+                serverPort = Integer.parseInt(args[1]);
+            } catch (NumberFormatException e) {
+                System.err.println("Invalid port number. Using default port: " + DEFAULT_PORT);
+            }
         }
 
-        try (Socket clientSocket = new Socket(endPoint.getHost(), endPoint.getPort())) {
+        try (DatagramSocket clientSocket = new DatagramSocket()) {
+            InetAddress serverAddress = InetAddress.getByName(serverHost);
 
-            System.out.println("Connected to " + endPoint.getHost() + ":" + endPoint.getPort());
+            // Prepare the request (can be an empty message)
+            byte[] sendData = "TIME_REQUEST".getBytes();
+            DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, serverAddress, serverPort);
 
-            try (
-                    var scanner = new Scanner(System.in);
-                    var writer = new PrintWriter(clientSocket.getOutputStream(), true);
-                    var reader = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()))
-            ) {
-                System.out.println("Enter the name of the application to execute:");
+            // Send the request to the server
+            clientSocket.send(sendPacket);
 
-                while (true) {
-                    System.out.print("App Name: ");
-                    var appName = scanner.nextLine();
+            // Prepare to receive the response
+            byte[] receiveData = new byte[1024];
+            DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
 
-                    if (appName.equalsIgnoreCase("Q")) {
-                        System.out.println("Exiting client.");
-                        break;
-                    }
+            // Receive the response from the server
+            clientSocket.receive(receivePacket);
 
-                    writer.println(appName);
+            // Extract the server's response
+            String serverTime = new String(receivePacket.getData(), 0, receivePacket.getLength());
+            System.out.println("Received time from server: " + serverTime);
 
-                    String serverResponse = reader.readLine();
-
-                    if (serverResponse != null) {
-                        System.out.println("Server Response: " + serverResponse);
-                    }
-                }
-            }
+        } catch (UnknownHostException e) {
+            System.err.println("Unknown host: " + serverHost);
+        } catch (IOException e) {
+            System.err.println("Error in client: " + e.getMessage());
         }
     }
 }
