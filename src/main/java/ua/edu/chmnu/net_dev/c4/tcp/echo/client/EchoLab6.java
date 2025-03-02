@@ -28,21 +28,16 @@ public class EchoLab6  {
         try (DatagramSocket clientSocket = new DatagramSocket()) {
             InetAddress serverAddress = InetAddress.getByName(serverHost);
 
-            // Prepare the request (can be an empty message)
             byte[] sendData = "TIME_REQUEST".getBytes();
             DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, serverAddress, serverPort);
 
-            // Send the request to the server
             clientSocket.send(sendPacket);
 
-            // Prepare to receive the response
             byte[] receiveData = new byte[1024];
             DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
 
-            // Receive the response from the server
             clientSocket.receive(receivePacket);
 
-            // Extract the server's response
             String serverTime = new String(receivePacket.getData(), 0, receivePacket.getLength());
             System.out.println("Received time from server: " + serverTime);
 
