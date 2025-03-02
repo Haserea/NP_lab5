@@ -9,7 +9,7 @@ import java.net.Socket;
 
 public class ParallelEchoServer {
 
-    private final static int DEFAULT_PORT = 6666;
+    private final static int DEFAULT_PORT = 8080;
 
     private static Integer resolvePort(String src, int defaultPort) {
         try {
